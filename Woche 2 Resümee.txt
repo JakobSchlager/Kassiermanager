@@ -1,0 +1,4 @@
+Diese Woche haben wir die ersten Stammtische erstellt bei jedem Stammtisch wird ein QR-Code
+erstellt und dieser QR-Code kann auch gescannt werden.
+Derzeit passt alles.
+Nächste Woche machen wir die Mitglieder Ansicht des Kassiers und die Stricherliste.
