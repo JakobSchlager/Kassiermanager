@@ -13,6 +13,7 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.DrawableWrapper;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
@@ -33,9 +34,19 @@ import com.google.zxing.WriterException;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import androidmads.library.qrgenearator.QRGContents;
 import androidmads.library.qrgenearator.QRGEncoder;
@@ -110,6 +121,21 @@ public class MainActivity extends AppCompatActivity {
 
 
         // hier bekommst du den Code des QR codes zurück, wenn dieser gescannt wurde !!!
+        int id = Integer.valueOf(result.getContents());
+        StammtischReadOneTask stammtischReadOneTask = new StammtischReadOneTask();
+        try {
+            JSONObject jsonObject = new JSONObject(stammtischReadOneTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf(id)).get());
+            Stammtisch newStammtisch = new Stammtisch(jsonObject.getString("name"), jsonObject.getInt("id"));
+            tables.add(newStammtisch);
+            myAdapter.notifyDataSetChanged();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
 
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -132,15 +158,12 @@ public class MainActivity extends AppCompatActivity {
         String tableName = txtName.getText().toString();
 
 
-// hier sollst du den Stammtisch an der Datenbank anlegen und die ID die du zurückbekommst in das Objekt speichern, diese Anlegen und in die Liste adden.
-
-        Stammtisch newStammtisch = new Stammtisch(tableName, 1);
+    // hier sollst du den Stammtisch an der Datenbank anlegen und die ID die du zurückbekommst in das Objekt speichern, diese Anlegen und in die Liste adden.
 
 
-        tables.add(newStammtisch);
-        myAdapter.notifyDataSetChanged();
 
-
+        tables.add(createStammtisch(tableName));
+            myAdapter.notifyDataSetChanged();
 
 
     }
@@ -177,6 +200,202 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+    }
+
+    private Stammtisch createStammtisch(String name) {
+        StammtischCreateTask stammtischCreateTask = new StammtischCreateTask();
+        try {
+            int newID = getNewID()+1;
+
+            String jsonString = stammtischCreateTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf(newID), name).get();
+            JSONObject jsonObject = new JSONObject(jsonString);
+            Stammtisch newStammtisch = new Stammtisch(jsonObject.getJSONObject("stammtisch").getString("name"), jsonObject.getJSONObject("stammtisch").getInt("id"));
+            //PFUSCH:
+
+
+            return newStammtisch;
+        } catch (ExecutionException | InterruptedException | JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private int getNewID() throws JSONException, ExecutionException, InterruptedException {
+        StammtischReadAllTask stammtischReadAllTask = new StammtischReadAllTask();
+        String jsonString = stammtischReadAllTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR).get();
+
+        //getting all to a Object
+        JSONObject jsonObject = new JSONObject(jsonString);
+        //taking just the array of stammtische
+        JSONArray jsonArray = jsonObject.getJSONArray("stammtische");
+        //getting the lastindex of that array
+        jsonObject = jsonArray.getJSONObject(jsonArray.length()-1);
+        return jsonObject.getInt("id");
+    }
+
+    private class StammtischCreateTask extends AsyncTask<String, Integer, String> {
+
+        private final String URL = "http://139.178.101.87/StammtischTest/api/functions/Stammtisch/createStammtisch.php";
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String jsonString = "{ \"id\" : \"" + strings[0] + "\" , \"name\" : \"" + strings[1] + "\" }";
+            String sJsonResponse = "";
+
+            try {
+                HttpURLConnection connection = (HttpURLConnection) new URL(URL).openConnection();
+                connection.setRequestMethod("POST");
+                connection.setDoOutput(true);
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setFixedLengthStreamingMode(jsonString.getBytes().length);
+                connection.getOutputStream().write(jsonString.getBytes());
+                connection.getOutputStream().flush();
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    sJsonResponse = readResponseStream(reader);
+                } else {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                    sJsonResponse = readResponseStream(reader);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return sJsonResponse;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+        }
+
+        private String readResponseStream(BufferedReader reader) throws IOException {
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            return stringBuilder.toString();
+        }
+
+    }
+
+    private class StammtischReadAllTask extends AsyncTask<String, Integer, String> {
+
+        private final String URL = "http://139.178.101.87/StammtischTest/api/functions/Stammtisch/readStammtische.php";
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String sJsonResponse = "";
+
+            try {
+                HttpURLConnection connection = (HttpURLConnection) new URL(URL).openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Content-Type", "application/json");
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    sJsonResponse = readResponseStream(reader);
+                } else {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                    sJsonResponse = readResponseStream(reader);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return sJsonResponse;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+        }
+
+        private String readResponseStream(BufferedReader reader) throws IOException {
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            return stringBuilder.toString();
+        }
+
+    }
+
+    private class StammtischReadOneTask extends AsyncTask<String, Integer, String> {
+
+        private String URL = "http://139.178.101.87/StammtischTest/api/functions/Stammtisch/readOneStammtisch.php?id=<id>";
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String sJsonResponse = "";
+            URL = URL.replace("<id>", strings[0]);
+
+            try {
+                HttpURLConnection connection = (HttpURLConnection) new URL(URL).openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Content-Type", "application/json");
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    sJsonResponse = readResponseStream(reader);
+                } else {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                    sJsonResponse = readResponseStream(reader);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return sJsonResponse;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+        }
+
+        private String readResponseStream(BufferedReader reader) throws IOException {
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            return stringBuilder.toString();
+        }
 
     }
 }
