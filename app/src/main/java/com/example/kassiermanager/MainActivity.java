@@ -16,6 +16,7 @@ import android.graphics.drawable.DrawableWrapper;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -69,12 +70,50 @@ public class MainActivity extends AppCompatActivity {
         myListview = findViewById(R.id.tablelistview);
         myAdapter = new TableListAdapter(this, R.layout.my_tables_list_layout, tables);
         myListview.setAdapter(myAdapter);
+        registerForContextMenu(myListview);
         myListview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                showQRCode(tables.get(position));
+
             }
         });
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+
+        int viewId = v.getId();
+        if(viewId == R.id.tablelistview)
+        {
+            getMenuInflater().inflate(R.menu.context_main_tables, menu);
+        }
+
+
+        super.onCreateContextMenu(menu, v, menuInfo);
+    }
+
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
+
+        if(item.getItemId() == R.id.context_showQRCode)
+        {
+
+            int pos = 0;
+
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+
+            if(info != null)
+            {
+               pos = info.position;
+            }
+
+
+
+            showQRCode(tables.get(pos));
+            return true;
+        }
+
+        return super.onContextItemSelected(item);
     }
 
     @Override
