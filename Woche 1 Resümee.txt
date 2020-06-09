@@ -1,5 +1,12 @@
+Resümee 1
 Diese Woche haben wir die Rest-API und die Datenbank erstellt dabei verwendeten wir DBI wissen um 
 diese zu normalisieren. Probleme gab es soweit nicht da wir ähnliches bereits in TC1 gemacht haben
 und uns weiteres Wissen selbst angeignet haben (Port forwarding, abfrage per php).
 Wir liegen derzeit gut im Zeitplan.
 Nächste Woche machen wir die Stammtisch ansicht und die Mitglieder hinzufügung per QR Code.
+
+Resümee 2
+Diese Woche haben wir die ersten Stammtische erstellt bei jedem Stammtisch wird ein QR-Code
+erstellt und dieser QR-Code kann auch gescannt werden.
+Derzeit passt alles.
+Nächste Woche machen wir die Mitglieder Ansicht des Kassiers und die Stricherliste.
