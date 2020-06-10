@@ -1,6 +1,8 @@
 package com.example.kassiermanager;
 
-public class Stammtisch
+import java.io.Serializable;
+
+public class Stammtisch implements Serializable
 {
     private String name;
     private int id;

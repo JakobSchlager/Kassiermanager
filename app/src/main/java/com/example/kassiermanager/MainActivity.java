@@ -55,9 +55,11 @@ import androidmads.library.qrgenearator.QRGEncoder;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MAIN";
+    static final int INTENT_REQUEST_CODE_DRINKS = 25518;
     private ListView myListview;
     private List<Stammtisch> tables = new ArrayList<>();
     private TableListAdapter myAdapter;
+    IntentIntegrator integrator;
 
 
 
@@ -146,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void scanCode()
     {
-        IntentIntegrator integrator = new IntentIntegrator(this);
+        integrator = new IntentIntegrator(this);
         integrator.setCaptureActivity(CaptureAct.class);
         integrator.setOrientationLocked(false);
         integrator.setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES);
@@ -156,24 +158,53 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == INTENT_REQUEST_CODE_DRINKS)
+        {
+            if(resultCode == RESULT_OK)
+            {
+                List<Drink> drinks = new ArrayList<>();
+
+                assert data != null;
+                String name = data.getStringExtra("Name");
+                drinks = (List<Drink>) data.getSerializableExtra("DrinkList");
 
 
-        // hier bekommst du den Code des QR codes zurück, wenn dieser gescannt wurde !!!
-        int id = Integer.valueOf(result.getContents());
-        StammtischReadOneTask stammtischReadOneTask = new StammtischReadOneTask();
-        try {
-            JSONObject jsonObject = new JSONObject(stammtischReadOneTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf(id)).get());
-            Stammtisch newStammtisch = new Stammtisch(jsonObject.getString("name"), jsonObject.getInt("id"));
-            tables.add(newStammtisch);
-            myAdapter.notifyDataSetChanged();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
+
+                //tables.add();
+                myAdapter.notifyDataSetChanged();
+            }
+
         }
+
+
+
+        if(requestCode == IntentIntegrator.REQUEST_CODE)
+        {
+
+            if(resultCode == RESULT_OK)
+            {
+
+                IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+
+
+                int id = Integer.valueOf(result.getContents());
+                StammtischReadOneTask stammtischReadOneTask = new StammtischReadOneTask();
+                try {
+                    JSONObject jsonObject = new JSONObject(stammtischReadOneTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf(id)).get());
+                    Stammtisch newStammtisch = new Stammtisch(jsonObject.getString("name"), jsonObject.getInt("id"));
+                    tables.add(newStammtisch);
+                    myAdapter.notifyDataSetChanged();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
 
 
         super.onActivityResult(requestCode, resultCode, data);
@@ -181,31 +212,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void createNewTable()
     {
-        final View vDialog = getLayoutInflater().inflate(R.layout.insert_tablename, null);
-
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setMessage("Name the Table")
-                .setView(vDialog)
-                .setNegativeButton("cancel", null)
-                .setPositiveButton("ok", (dialog, which) -> handleDialog(vDialog))
-                .show();
+        Intent intent = new Intent(this, AddTableandDrinks.class);
+        startActivityForResult(intent, INTENT_REQUEST_CODE_DRINKS);
     }
 
-    private void handleDialog(final View vDialog)
-    {
-        EditText txtName = vDialog.findViewById(R.id.txt_TableName);
-        String tableName = txtName.getText().toString();
 
-
-    // hier sollst du den Stammtisch an der Datenbank anlegen und die ID die du zurückbekommst in das Objekt speichern, diese Anlegen und in die Liste adden.
-
-
-
-        tables.add(createStammtisch(tableName));
-            myAdapter.notifyDataSetChanged();
-
-
-    }
 
     private void showQRCode(Stammtisch table)
     {

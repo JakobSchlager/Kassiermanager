@@ -7,4 +7,58 @@
     android:orientation="vertical"
     tools:context=".AddTableandDrinks">
 
+    <EditText
+        android:id="@+id/txt_TableName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="5dp"
+        android:hint="Name"
+        android:textSize="24sp" />
+
+    <ListView
+        android:id="@+id/drinks_listview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="10dp"
+        android:layout_weight="1">
+
+    </ListView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_submit_table"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginBottom="15dp"
+            android:layout_weight="1"
+            android:backgroundTint="#E91E63"
+            android:text="Submit"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/btn_add_Drink"
+            android:layout_width="62.5dp"
+            android:layout_height="100dp"
+            android:layout_gravity="right"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="15dp"
+            android:background="@drawable/ic_beer_add"
+            android:clickable="true"
+            android:contextClickable="true"
+            android:minHeight="50dp" />
+    </LinearLayout>
+
 </LinearLayout>
