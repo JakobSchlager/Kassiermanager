@@ -24,7 +24,7 @@ public class AddTableandDrinks extends AppCompatActivity {
     ListView listView;
     EditText txt_Name;
 
-    private List<Drink> drinkList = new ArrayList<>();
+    private List<DummyDrink> drinkList = new ArrayList<>();
     private DrinkPriceAdapter myAdapter;
 
     @Override
@@ -89,7 +89,7 @@ public class AddTableandDrinks extends AppCompatActivity {
 
 
                     assert data != null;
-                    Drink drink = (Drink) data.getSerializableExtra("Drink");
+                    DummyDrink drink = (DummyDrink) data.getSerializableExtra("Drink");
 
                     drinkList.add(drink);
                     myAdapter.notifyDataSetChanged();

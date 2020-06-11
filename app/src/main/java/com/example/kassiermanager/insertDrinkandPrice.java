@@ -10,6 +10,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.HashMap;
+
 public class insertDrinkandPrice extends AppCompatActivity {
 
     Button btn1;
@@ -60,7 +62,7 @@ public class insertDrinkandPrice extends AppCompatActivity {
                 if(!name.isEmpty() && !price.isEmpty())
                 {
 
-                    Drink drink = new Drink(name, Double.valueOf(price.replace(",", ".")));
+                    DummyDrink drink = new DummyDrink(name, Double.valueOf(price.replace(",", ".")));
 
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra("Drink", drink);

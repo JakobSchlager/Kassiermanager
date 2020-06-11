@@ -41,13 +41,22 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import androidmads.library.qrgenearator.QRGContents;
 import androidmads.library.qrgenearator.QRGEncoder;
@@ -61,8 +70,7 @@ public class MainActivity extends AppCompatActivity {
     private TableListAdapter myAdapter;
     IntentIntegrator integrator;
 
-
-
+    private final String fileName = "Stammtische.txt";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,9 +84,18 @@ public class MainActivity extends AppCompatActivity {
         myListview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getApplicationContext(), PersonListActivity.class);
+                intent.putExtra("StammtischID", tables.get(position).getId());
 
+                startActivity(intent);
+                //PersonenID: 1, StammtischID: 5
             }
         });
+
+        List<Integer> stammtischIds = readStammtischIDs();
+
+        stammtischIds.forEach(id -> tables.add(readOneStammtisch(id)));
+        myAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -163,51 +180,53 @@ public class MainActivity extends AppCompatActivity {
         {
             if(resultCode == RESULT_OK)
             {
-                List<Drink> drinks = new ArrayList<>();
+                List<DummyDrink> drinks = new ArrayList<>();
 
                 assert data != null;
                 String name = data.getStringExtra("Name");
-                drinks = (List<Drink>) data.getSerializableExtra("DrinkList");
+                drinks = (List<DummyDrink>) data.getSerializableExtra("DrinkList");
 
+                Stammtisch newStammtisch = createStammtisch(name);
+                int stammtischID = newStammtisch.getId();
 
+                drinks.forEach(drink -> createDrink(stammtischID, drink.getName(), drink.getPrice()));
 
-                //tables.add();
+                tables.add(newStammtisch);
                 myAdapter.notifyDataSetChanged();
             }
-
         }
-
-
 
         if(requestCode == IntentIntegrator.REQUEST_CODE)
         {
-
             if(resultCode == RESULT_OK)
             {
-
                 IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
 
-
                 int id = Integer.valueOf(result.getContents());
-                StammtischReadOneTask stammtischReadOneTask = new StammtischReadOneTask();
-                try {
-                    JSONObject jsonObject = new JSONObject(stammtischReadOneTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf(id)).get());
-                    Stammtisch newStammtisch = new Stammtisch(jsonObject.getString("name"), jsonObject.getInt("id"));
-                    tables.add(newStammtisch);
-                    myAdapter.notifyDataSetChanged();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+
+                tables.add(readOneStammtisch(id));
+                myAdapter.notifyDataSetChanged();
             }
         }
 
-
-
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private Stammtisch readOneStammtisch(int id) {
+        StammtischReadOneTask stammtischReadOneTask = new StammtischReadOneTask();
+        try {
+            JSONObject jsonObject = new JSONObject(stammtischReadOneTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf(id)).get());
+            Stammtisch newStammtisch = new Stammtisch(jsonObject.getString("name"), jsonObject.getInt("id"));
+
+            return newStammtisch;
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private void createNewTable()
@@ -215,8 +234,6 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, AddTableandDrinks.class);
         startActivityForResult(intent, INTENT_REQUEST_CODE_DRINKS);
     }
-
-
 
     private void showQRCode(Stammtisch table)
     {
@@ -247,23 +264,16 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("image", byteArray);
         intent.putExtra("name", table.getName());
         startActivity(intent);
-
-
-
-
     }
 
     private Stammtisch createStammtisch(String name) {
         StammtischCreateTask stammtischCreateTask = new StammtischCreateTask();
         try {
-            int newID = getNewID()+1;
-
-            String jsonString = stammtischCreateTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf(newID), name).get();
+            String jsonString = stammtischCreateTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf("AutoIncrement"), name).get();
             JSONObject jsonObject = new JSONObject(jsonString);
             Stammtisch newStammtisch = new Stammtisch(jsonObject.getJSONObject("stammtisch").getString("name"), jsonObject.getJSONObject("stammtisch").getInt("id"));
-            //PFUSCH:
 
-
+            saveStammtischIDsLocal(newStammtisch.getId());
             return newStammtisch;
         } catch (ExecutionException | InterruptedException | JSONException e) {
             e.printStackTrace();
@@ -271,18 +281,6 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    private int getNewID() throws JSONException, ExecutionException, InterruptedException {
-        StammtischReadAllTask stammtischReadAllTask = new StammtischReadAllTask();
-        String jsonString = stammtischReadAllTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR).get();
-
-        //getting all to a Object
-        JSONObject jsonObject = new JSONObject(jsonString);
-        //taking just the array of stammtische
-        JSONArray jsonArray = jsonObject.getJSONArray("stammtische");
-        //getting the lastindex of that array
-        jsonObject = jsonArray.getJSONObject(jsonArray.length()-1);
-        return jsonObject.getInt("id");
-    }
 
     private class StammtischCreateTask extends AsyncTask<String, Integer, String> {
 
@@ -446,6 +444,120 @@ public class MainActivity extends AppCompatActivity {
             }
             return stringBuilder.toString();
         }
+    }
 
+    public Drink createDrink(int stammtischId, String name, double preis) {
+        DrinkCreateTask PersonCreateTask = new DrinkCreateTask();
+        try {
+            String jsonString = PersonCreateTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "AutoIncrement", String.valueOf(stammtischId), name, String.valueOf(preis)).get();
+            JSONObject jsonObject = new JSONObject(jsonString).getJSONObject("Drink");
+
+            int id = jsonObject.getInt("id");
+            name = jsonObject.getString("name");
+            stammtischId = jsonObject.getInt("stammtischID");
+            preis = jsonObject.getDouble("price");
+
+            return new Drink(id, name, stammtischId, preis);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private class DrinkCreateTask extends AsyncTask<String, Integer, String> {
+
+        private final String URL = "http://139.178.101.87/StammtischTest/api/functions/Getraenk/createGetraenk.php";
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String jsonString = "{ \"GetraenkeID\" : \"" + strings[0] + "\" , \"StammtischID\" : \"" + strings[1] + "\" , \"GetraenkeName\" : \"" + strings[2] + "\" , \"Preis\" : \"" + strings[3] + "\" }";
+            String sJsonResponse = "";
+
+            try {
+                HttpURLConnection connection = (HttpURLConnection) new URL(URL).openConnection();
+                connection.setRequestMethod("POST");
+                connection.setDoOutput(true);
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setFixedLengthStreamingMode(jsonString.getBytes().length);
+                connection.getOutputStream().write(jsonString.getBytes());
+                connection.getOutputStream().flush();
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    sJsonResponse = readResponseStream(reader);
+                } else {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                    sJsonResponse = readResponseStream(reader);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return sJsonResponse;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+        }
+
+        private String readResponseStream(BufferedReader reader) throws IOException {
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            return stringBuilder.toString();
+        }
+
+    }
+
+    private void saveStammtischIDsLocal(int stammtischId) {
+        try {
+            FileOutputStream fos = openFileOutput(fileName, MODE_PRIVATE | MODE_APPEND);
+            PrintWriter out = new PrintWriter(new OutputStreamWriter(fos));
+            out.println(stammtischId+";");
+            out.flush();
+            out.close();
+        } catch (FileNotFoundException exp) {
+            exp.printStackTrace();
+        }
+    }
+
+    private List<Integer> readStammtischIDs() {
+        try {
+            FileInputStream fis = openFileInput(fileName);
+            BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+            String line;
+            String data = "";
+            while ((line = in.readLine()) != null) {
+                data += line;
+            }
+            in.close();
+
+            List<Integer> stammtische = new ArrayList<>();
+
+            Arrays.asList(data.split(";")).forEach(s -> stammtische.add(Integer.valueOf(s)));
+
+            return stammtische;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
     }
 }
