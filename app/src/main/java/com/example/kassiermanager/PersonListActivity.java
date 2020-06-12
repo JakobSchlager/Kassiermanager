@@ -4,10 +4,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 
@@ -61,6 +63,17 @@ public class PersonListActivity extends AppCompatActivity {
         }
 
         myAdapter.notifyDataSetChanged();
+
+        myListview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Person p = persons.get(position);
+
+                Intent intent = new Intent(getApplicationContext(), Strichlist.class);
+                intent.putExtra("Person", p);
+                startActivity(intent);
+            }
+        });
     }
 
     private void showNewPersonDialog(){

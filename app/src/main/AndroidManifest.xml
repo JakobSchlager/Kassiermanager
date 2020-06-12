@@ -16,7 +16,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".insertDrinkandPrice"></activity>
+        <activity android:name=".AddDrinksToStrichlist"></activity>
+        <activity android:name=".insertDrinkandPrice" />
         <activity android:name=".AddTableandDrinks" />
         <activity android:name=".Strichlist" />
         <activity android:name=".PersonListActivity" />
