@@ -1,0 +1,4 @@
+Diese Woche haben wir die Personen Activity vollständig mit api eingebaut. Außerdem haben wir entschlossen die 
+Strichlisten noch ohne api Anschluss zu implementieren und stattdessen einen Großteil der Design Arbeiten 
+zu erledigen. Somit liegen wir gut im Zeitplan, um nächste Woche die Strichlisten vollständig einbinden 
+und das Design fertigstellen zu können. 
