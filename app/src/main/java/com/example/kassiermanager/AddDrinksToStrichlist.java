@@ -51,7 +51,7 @@ public class AddDrinksToStrichlist extends AppCompatActivity {
         myAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, drinkName);
 
         spinnerDrinks.setAdapter(myAdapter);
-        spinnerDrinks.setSelection(1);
+        spinnerDrinks.setSelection(0);
         myAdapter.notifyDataSetChanged();
 
         btn_plus_one = findViewById(R.id.btn_add_one);

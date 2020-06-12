@@ -46,9 +46,9 @@ public class Strichlist extends AppCompatActivity {
         myAdapter = new DrinkAmountAdapter(this, R.layout.my_drins_and_amount_list_layout, drinksAndAmount);
         drinkListView.setAdapter(myAdapter);
 
-        drinksAndAmount.add(new DrinkPlusAmount("Bier", 3.50, 3));
-        drinksAndAmount.add(new DrinkPlusAmount("Bier", 3.50, 3));
-        drinksAndAmount.add(new DrinkPlusAmount("Bier", 3.50, 3));
+        drinksAndAmount.add(new DrinkPlusAmount("Bier", 3.50, 7));
+        drinksAndAmount.add(new DrinkPlusAmount("Wein", 2.50, 2));
+        drinksAndAmount.add(new DrinkPlusAmount("Cola", 3.0, 4));
 
         updateSum();
 
@@ -83,6 +83,9 @@ public class Strichlist extends AppCompatActivity {
 
                 List<Drink> drinks = new ArrayList<>();
                 drinks.add(new Drink(1, "Bier", 1, 3.5));
+                drinks.add(new Drink(2, "Wein", 1, 2.5));
+                drinks.add(new Drink(3, "Cola", 1, 3));
+
                 //test weise
 
                 Intent intent = new Intent(getApplicationContext(), AddDrinksToStrichlist.class);
@@ -106,9 +109,26 @@ public class Strichlist extends AppCompatActivity {
             if (resultCode == RESULT_OK)
             {
 
+                boolean changed = false;
+
                 DrinkPlusAmount drink = (DrinkPlusAmount) data.getSerializableExtra("myReturnDrink");
 
-                drinksAndAmount.add(drink);
+                for(DrinkPlusAmount d : drinksAndAmount)
+                {
+                    if(d.getName().equals(drink.getName()))
+                    {
+                        d.setAmount(d.getAmount() + drink.getAmount());
+                        changed = true;
+                    }
+
+                }
+
+                if(!changed)
+                {
+                    drinksAndAmount.add(drink);
+                }
+
+
                 updateSum();
                 myAdapter.notifyDataSetChanged();
             }
