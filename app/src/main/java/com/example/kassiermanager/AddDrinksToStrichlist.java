@@ -84,12 +84,21 @@ public class AddDrinksToStrichlist extends AppCompatActivity {
         btn_Add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //alle ids 1, werden später verändert
+                int personID = getIntent().getIntExtra("personID", 0);
+                String choosenName = spinnerDrinks.getSelectedItem().toString();
+                Drink choosenDrink = null;
 
-                DrinkPlusAmount drink = new DrinkPlusAmount(spinnerDrinks.getSelectedItem().toString(),  drinks.get(spinnerDrinks.getSelectedItemPosition()).getPrice(),Integer.parseInt(txt_Amount.getText().toString()));
+                for (Drink drink : drinks) {
+                    if(drink.getName() == choosenName) choosenDrink = drink;
+                }
+
+                DrinkPlusAmount drink = new DrinkPlusAmount(1, choosenDrink.getId(), personID, spinnerDrinks.getSelectedItem().toString(),  drinks.get(spinnerDrinks.getSelectedItemPosition()).getPrice(),Integer.parseInt(txt_Amount.getText().toString()));
 
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("myReturnDrink", drink);
                 setResult(RESULT_OK, resultIntent);
+
                 finish();
             }
         });
