@@ -1,0 +1,4 @@
+Diese Woche haben wir Preferences eingebaut und die Bearbeitung von Stammtischen wie Name und Getränke und 
+das Restliche Design vervollständigt.
+Nächste Woche bauen wir noch Notifications und Fragments ein und vorallem erstellen wir die Präsentation zum Projekt.
+
