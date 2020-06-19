@@ -77,9 +77,11 @@ public class PersonListActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Person p = persons.get(position);
 
-                Intent intent = new Intent(getApplicationContext(), Strichlist.class);
-                intent.putExtra("Person", p);
-                startActivity(intent);
+                if(p.getId() == stammtischPersonen.get(stammtischId)) {
+                    Intent intent = new Intent(getApplicationContext(), Strichlist.class);
+                    intent.putExtra("Person", p);
+                    startActivity(intent);
+                }
             }
         });
     }
