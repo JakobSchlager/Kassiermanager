@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".PersonListActivity">
+    tools:context=".Activitys.PersonListActivity">
 
     <ListView
         android:id="@+id/persons_List"

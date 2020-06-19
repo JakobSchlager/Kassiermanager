@@ -1,8 +1,12 @@
-package com.example.kassiermanager;
+package com.example.kassiermanager.Activitys;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -10,7 +14,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.HashMap;
+import com.example.kassiermanager.Entities.DummyDrink;
+import com.example.kassiermanager.R;
 
 public class insertDrinkandPrice extends AppCompatActivity {
 
@@ -38,7 +43,7 @@ public class insertDrinkandPrice extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_insert_drinkand_price);
 
-
+        actionbarDesign();
 
         btn1 = findViewById(R.id.btn_1);
         btn2 = findViewById(R.id.btn_2);
@@ -270,5 +275,11 @@ public class insertDrinkandPrice extends AppCompatActivity {
         {
            return true;
         }
+    }
+
+    private void actionbarDesign(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String backgroundColour = prefs.getString("colour", "#6200EE");
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor(backgroundColour)));
     }
 }

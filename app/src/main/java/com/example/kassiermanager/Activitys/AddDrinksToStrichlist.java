@@ -1,16 +1,22 @@
-package com.example.kassiermanager;
+package com.example.kassiermanager.Activitys;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Adapter;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import com.example.kassiermanager.Entities.Drink;
+import com.example.kassiermanager.Entities.DrinkPlusAmount;
+import com.example.kassiermanager.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +39,8 @@ public class AddDrinksToStrichlist extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_drinks_to_strichlist);
+
+        actionbarDesign();
 
         Bundle bundle = getIntent().getExtras();
 
@@ -97,5 +105,11 @@ public class AddDrinksToStrichlist extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    private void actionbarDesign(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String backgroundColour = prefs.getString("colour", "#6200EE");
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor(backgroundColour)));
     }
 }

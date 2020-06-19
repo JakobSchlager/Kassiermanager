@@ -1,4 +1,4 @@
-package com.example.kassiermanager;
+package com.example.kassiermanager.Entities;
 
 import java.io.Serializable;
 

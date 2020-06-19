@@ -1,17 +1,23 @@
-package com.example.kassiermanager;
+package com.example.kassiermanager.Activitys;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Intent;
-import android.content.res.AssetManager;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+
+import com.example.kassiermanager.Entities.Person;
+import com.example.kassiermanager.Adapters.PersonListAdapter;
+import com.example.kassiermanager.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,7 +28,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -44,10 +49,13 @@ public class PersonListActivity extends AppCompatActivity {
 
     int stammtischId;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_person_list);
+
+        actionbarDesign();
 
         myListview = findViewById(R.id.persons_List);
         myAdapter = new PersonListAdapter(this, R.layout.my_persons_list_layout, persons);
@@ -294,5 +302,11 @@ public class PersonListActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         return new HashMap<>();
+    }
+
+    private void actionbarDesign(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String backgroundColour = prefs.getString("colour", "#6200EE");
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor(backgroundColour)));
     }
 }

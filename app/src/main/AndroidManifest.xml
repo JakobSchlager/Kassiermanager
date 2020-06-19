@@ -16,13 +16,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".AddDrinksToStrichlist"></activity>
-        <activity android:name=".insertDrinkandPrice" />
-        <activity android:name=".AddTableandDrinks" />
-        <activity android:name=".Strichlist" />
-        <activity android:name=".PersonListActivity" />
-        <activity android:name=".QRCodeActivity" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".PreferenceActivity"></activity>
+        <activity android:name=".Activitys.AddDrinksToStrichlist" />
+        <activity android:name=".Activitys.insertDrinkandPrice" />
+        <activity android:name=".Activitys.AddTableandDrinks" />
+        <activity android:name=".Activitys.Strichlist" />
+        <activity android:name=".Activitys.PersonListActivity" />
+        <activity android:name=".Activitys.QRCodeActivity" />
+        <activity android:name=".Activitys.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -1,19 +1,19 @@
-package com.example.kassiermanager;
+package com.example.kassiermanager.Entities;
 
 import java.io.Serializable;
 
-public class Drink implements Serializable {
+public class Person implements Serializable {
 
     int id;
     String name;
     int stammtsichID;
-    double price;
+    boolean isAdmin;
 
-    public Drink(int id, String name, int stammtsichID, double price) {
+    public Person(int id, String name, int stammtsichID, boolean isAdmin) {
         this.id = id;
         this.name = name;
         this.stammtsichID = stammtsichID;
-        this.price = price;
+        this.isAdmin = isAdmin;
     }
 
     public int getId() {
@@ -28,7 +28,7 @@ public class Drink implements Serializable {
         return stammtsichID;
     }
 
-    public double getPrice() {
-        return price;
+    public boolean isAdmin() {
+        return isAdmin;
     }
 }
