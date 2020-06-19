@@ -65,6 +65,7 @@ import androidmads.library.qrgenearator.QRGEncoder;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MAIN";
     static final int INTENT_REQUEST_CODE_DRINKS = 25518;
+    static final int INTENT_CODE_EDIT_DRINKS = 6969;
     private ListView myListview;
     private List<Stammtisch> tables = new ArrayList<>();
     private TableListAdapter myAdapter;
@@ -113,18 +114,47 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
+
         if(item.getItemId() == R.id.context_showQRCode)
         {
+
             int pos = 0;
 
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+
             if(info != null)
             {
-                pos = info.position;
+               pos = info.position;
             }
+
+
+
             showQRCode(tables.get(pos));
             return true;
         }
+        if(item.getItemId() == R.id.context_edit_main)
+        {
+
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+
+            Stammtisch table = null;
+            if(info != null)
+            {
+
+                int pos = info.position;
+
+                table = (Stammtisch) myListview.getAdapter().getItem(pos);
+
+            }
+
+            Intent intent = new Intent(this, AddTableandDrinks.class);
+            intent.putExtra("Stammtisch", table);
+            startActivityForResult(intent, INTENT_CODE_EDIT_DRINKS);
+
+            return true;
+
+        }
+
         return super.onContextItemSelected(item);
     }
 
@@ -253,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
         byte[] byteArray = stream.toByteArray();
 
 
-        Intent intent = new Intent(this, QRCodeActivity.class);
+   Intent intent = new Intent(this, QRCodeActivity.class);
         intent.putExtra("image", byteArray);
         intent.putExtra("name", table.getName());
         startActivity(intent);
