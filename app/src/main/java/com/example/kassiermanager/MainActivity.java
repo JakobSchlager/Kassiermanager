@@ -113,25 +113,18 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
-
         if(item.getItemId() == R.id.context_showQRCode)
         {
-
             int pos = 0;
 
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-
             if(info != null)
             {
-               pos = info.position;
+                pos = info.position;
             }
-
-
-
             showQRCode(tables.get(pos));
             return true;
         }
-
         return super.onContextItemSelected(item);
     }
 
@@ -260,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
         byte[] byteArray = stream.toByteArray();
 
 
-   Intent intent = new Intent(this, QRCodeActivity.class);
+        Intent intent = new Intent(this, QRCodeActivity.class);
         intent.putExtra("image", byteArray);
         intent.putExtra("name", table.getName());
         startActivity(intent);

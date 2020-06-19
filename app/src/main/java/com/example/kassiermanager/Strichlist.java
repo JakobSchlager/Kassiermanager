@@ -110,12 +110,6 @@ public class Strichlist extends AppCompatActivity {
                 startActivityForResult(intent, INTENT_REQUEST_CODE_DRINKS_TO_ADD_TO_STRICHLIST);
             }
         });
-
-
-
-
-
-
     }
 
 

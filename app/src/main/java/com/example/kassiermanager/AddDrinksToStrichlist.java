@@ -34,8 +34,6 @@ public class AddDrinksToStrichlist extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_drinks_to_strichlist);
 
-
-
         Bundle bundle = getIntent().getExtras();
 
         if(bundle != null)
@@ -58,9 +56,6 @@ public class AddDrinksToStrichlist extends AppCompatActivity {
         btn_sub_one = findViewById(R.id.btn_sub_one);
         txt_Amount = findViewById(R.id.txt_show_Amount);
         btn_Add = findViewById(R.id.btn_add_drink_to_strichlist);
-
-
-
 
         btn_plus_one.setOnClickListener(new View.OnClickListener() {
             @Override
