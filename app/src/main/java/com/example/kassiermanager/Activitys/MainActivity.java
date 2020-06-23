@@ -1,10 +1,5 @@
 package com.example.kassiermanager.Activitys;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.preference.PreferenceManager;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -13,7 +8,6 @@ import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.Html;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Display;
@@ -23,15 +17,19 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
+
+import com.example.kassiermanager.Adapters.TableListAdapter;
 import com.example.kassiermanager.CaptureAct;
 import com.example.kassiermanager.Entities.Drink;
 import com.example.kassiermanager.Entities.DummyDrink;
+import com.example.kassiermanager.Entities.Stammtisch;
 import com.example.kassiermanager.PreferenceActivity;
 import com.example.kassiermanager.R;
-import com.example.kassiermanager.Entities.Stammtisch;
-import com.example.kassiermanager.Adapters.TableListAdapter;
 import com.google.zxing.WriterException;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
