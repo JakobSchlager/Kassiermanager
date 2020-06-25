@@ -1,9 +1,7 @@
 package com.example.kassiermanager.Activitys;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.preference.PreferenceManager;
-
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -15,8 +13,12 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.example.kassiermanager.Entities.Drink;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
+
 import com.example.kassiermanager.Adapters.DrinkAmountAdapter;
+import com.example.kassiermanager.Entities.Drink;
 import com.example.kassiermanager.Entities.DrinkPlusAmount;
 import com.example.kassiermanager.Entities.Person;
 import com.example.kassiermanager.R;
@@ -80,22 +82,24 @@ public class Strichlist extends AppCompatActivity {
         btn_Pay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               /* new AlertDialog.Builder(getApplicationContext())
-                        .setMessage("Are you sure you want to Pay " + getSum() + " €")
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                drinksAndAmount.clear();
-                                updateSum();
-                                myAdapter.notifyDataSetChanged();
-                            }
-                        })
-                        .setNegativeButton("No", null)
-                        .show();*/
 
-                drinksAndAmount.clear();
+                    new AlertDialog.Builder(Strichlist.this)
+                            .setMessage("Are you sure you want to Pay " + getSum() + "€?")
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    drinksAndAmount.clear();
+                                    updateSum();
+                                    myAdapter.notifyDataSetChanged();
+                                }
+                            })
+                            .setNegativeButton("No", null)
+                            .show();
+
+
+                /*drinksAndAmount.clear();
                 updateSum();
-                myAdapter.notifyDataSetChanged();
+                myAdapter.notifyDataSetChanged();*/
             }
         });
 
@@ -124,13 +128,15 @@ public class Strichlist extends AppCompatActivity {
     }
 
 
+
+
     private DrinkPlusAmount updateStrichliste(DrinkPlusAmount oldStrichliste, int newAmount) {
         try {
             StrichlistenEditEndpunkt strichlistenEditEndpunkt = new StrichlistenEditEndpunkt();
             String jsonString = strichlistenEditEndpunkt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf(oldStrichliste.getId()), String.valueOf(oldStrichliste.getPersonID()), String.valueOf(oldStrichliste.getGetraenkeID()), String.valueOf(newAmount)).get();
 
             if (jsonString.contains("strichliste was updated.")) {
-                oldStrichliste.setAmount(newAmount);
+                oldStrichliste.setAmount(oldStrichliste.getAmount() + newAmount);
                 return oldStrichliste;
             }
         }
