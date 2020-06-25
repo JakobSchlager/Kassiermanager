@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,6 +43,7 @@ public class PersonListActivity extends AppCompatActivity {
     private List<Person> persons = new ArrayList<>();
     private PersonListAdapter myAdapter;
 
+    private int myID;
     int stammtischId;
 
     @Override
@@ -60,6 +62,8 @@ public class PersonListActivity extends AppCompatActivity {
         Map<Integer, Integer> stammtischPersonen = readStammtischIDs();
         if(stammtischPersonen.isEmpty() || stammtischPersonen.get(stammtischId) == null) {
             showNewPersonDialog();
+        } else {
+            myID = stammtischPersonen.get(stammtischId);
         }
 
         myAdapter.notifyDataSetChanged();
@@ -69,9 +73,13 @@ public class PersonListActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Person p = persons.get(position);
 
-                Intent intent = new Intent(getApplicationContext(), Strichlist.class);
-                intent.putExtra("Person", p);
-                startActivity(intent);
+                if(myID == p.getId()) {
+                    Intent intent = new Intent(getApplicationContext(), Strichlist.class);
+                    intent.putExtra("Person", p);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(PersonListActivity.this, "Kein Zugriffsrecht!", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }

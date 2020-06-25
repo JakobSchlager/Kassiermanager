@@ -148,7 +148,7 @@ public class Strichlist extends AppCompatActivity {
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jsonObject = (JSONObject) jsonArray.get(i);
 
-                    int id = jsonObject.getInt("strichlistenID");
+                    int id = jsonObject.getInt("strichlistenid");
                     int getraenkeID = jsonObject.getInt("getraenkeID");
                     String getrankeNamen = jsonObject.getString("getraenkeNamen");
                     double price = jsonObject.getDouble("price");
@@ -250,7 +250,7 @@ public class Strichlist extends AppCompatActivity {
 
     private class StrichlistReadFromPersonTask extends AsyncTask<String, Integer, String> {
 
-        private String URL = "http://http://139.178.101.87/StammtischTest/api/functions/Strichliste/readStrichlisteFromPerson.php?id=<id>";
+        private String URL = "http://139.178.101.87/StammtischTest/api/functions/Strichliste/readStrichlisteFromPerson.php?id=<id>";
 
         @Override
         protected void onPreExecute() {
