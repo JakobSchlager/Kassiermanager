@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:defaultValue="#6200EE"
+        android:entries="@array/colours"
+        android:entryValues="@array/colours_values"
+        android:key="colour"
+        android:title="Set Color Theme"
+        app:icon="@drawable/ic_color_lens" />
+</PreferenceScreen>

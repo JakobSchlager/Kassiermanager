@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="colours">
+        <item>White</item>
+        <item>Rot</item>
+        <item>Grün</item>
+        <item>Blau</item>
+        <item>Orange</item>
+        <item>Lila</item>
+        <item>Gelb</item>
+    </string-array>
+    <string-array name="colours_values">
+        <item>#FFFFFF</item>
+        <item>#FF0000</item>
+        <item>#0F9905</item>
+        <item>#0000FF</item>
+        <item>#FF5733</item>
+        <item>#581845</item>
+        <item>#FFC300</item>
+    </string-array>
+</resources>

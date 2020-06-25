@@ -1,41 +1,41 @@
-package com.example.kassiermanager;
+package com.example.kassiermanager.Activitys;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 
-import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Point;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.DrawableWrapper;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Display;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.kassiermanager.CaptureAct;
+import com.example.kassiermanager.Entities.Drink;
+import com.example.kassiermanager.Entities.DummyDrink;
+import com.example.kassiermanager.PreferenceActivity;
+import com.example.kassiermanager.R;
+import com.example.kassiermanager.Entities.Stammtisch;
+import com.example.kassiermanager.Adapters.TableListAdapter;
 import com.google.zxing.WriterException;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -52,11 +52,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import androidmads.library.qrgenearator.QRGContents;
 import androidmads.library.qrgenearator.QRGEncoder;
@@ -65,10 +62,15 @@ import androidmads.library.qrgenearator.QRGEncoder;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MAIN";
     static final int INTENT_REQUEST_CODE_DRINKS = 25518;
+    static final int INTENT_CODE_EDIT_DRINKS = 6969;
+    private static final int RQ_PREFERENCES = 911;
     private ListView myListview;
     private List<Stammtisch> tables = new ArrayList<>();
     private TableListAdapter myAdapter;
     IntentIntegrator integrator;
+
+    private SharedPreferences prefs;
+    private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
 
     private final String fileName = "Stammtische.txt";
 
@@ -76,6 +78,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        actionbarDesign();
 
         myListview = findViewById(R.id.tablelistview);
         myAdapter = new TableListAdapter(this, R.layout.my_tables_list_layout, tables);
@@ -96,6 +100,19 @@ public class MainActivity extends AppCompatActivity {
 
         stammtischIds.forEach(id -> tables.add(readOneStammtisch(id)));
         myAdapter.notifyDataSetChanged();
+    }
+
+    private void actionbarDesign(){
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        preferenceChangeListener = ((sharedPrefs, key) -> preferenceChanged(sharedPrefs, key));
+        prefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener);
+        String backgroundColour = prefs.getString("colour", "#6200EE");
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor(backgroundColour)));
+    }
+
+    private void preferenceChanged(SharedPreferences sharedPreferences, String key) {
+        String backgroundColour = prefs.getString("colour", "#6200EE");
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor(backgroundColour)));
     }
 
     @Override
@@ -126,12 +143,26 @@ public class MainActivity extends AppCompatActivity {
                pos = info.position;
             }
 
-
-
             showQRCode(tables.get(pos));
             return true;
         }
+        if(item.getItemId() == R.id.context_edit_main)
+        {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
+            Stammtisch table = null;
+            if(info != null)
+            {
+                int pos = info.position;
+                table = (Stammtisch) myListview.getAdapter().getItem(pos);
+            }
+
+            Intent intent = new Intent(this, AddTableandDrinks.class);
+            intent.putExtra("Stammtisch", table);
+            startActivityForResult(intent, INTENT_CODE_EDIT_DRINKS);
+
+            return true;
+        }
         return super.onContextItemSelected(item);
     }
 
@@ -150,15 +181,16 @@ public class MainActivity extends AppCompatActivity {
         switch (id)
         {
             case R.id.scanQR:
-
                 scanCode();
-
                 break;
-
             case R.id.newTable:
                 createNewTable();
                 break;
+            case R.id.preferences_settings:
+                Intent intent = new Intent(this, PreferenceActivity.class);
+                startActivityForResult(intent, RQ_PREFERENCES);
         }
+
 
         return super.onOptionsItemSelected(item);
     }
@@ -206,6 +238,12 @@ public class MainActivity extends AppCompatActivity {
 
                 tables.add(readOneStammtisch(id));
                 myAdapter.notifyDataSetChanged();
+            }
+        }
+
+        if(requestCode == RQ_PREFERENCES) {
+            if(resultCode == RESULT_OK) {
+                System.out.println();
             }
         }
 

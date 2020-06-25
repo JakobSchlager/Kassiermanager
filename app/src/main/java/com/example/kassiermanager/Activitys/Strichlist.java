@@ -1,17 +1,25 @@
-package com.example.kassiermanager;
+package com.example.kassiermanager.Activitys;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.example.kassiermanager.Entities.Drink;
+import com.example.kassiermanager.Adapters.DrinkAmountAdapter;
+import com.example.kassiermanager.Entities.DrinkPlusAmount;
+import com.example.kassiermanager.Entities.Person;
+import com.example.kassiermanager.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,6 +32,7 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -45,6 +54,8 @@ public class Strichlist extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_strichlist);
+
+        actionbarDesign();
 
         Bundle bundle = getIntent().getExtras();
         person = (Person) bundle.getSerializable("Person");
@@ -110,12 +121,6 @@ public class Strichlist extends AppCompatActivity {
                 startActivityForResult(intent, INTENT_REQUEST_CODE_DRINKS_TO_ADD_TO_STRICHLIST);
             }
         });
-
-
-
-
-
-
     }
 
 
@@ -167,7 +172,7 @@ public class Strichlist extends AppCompatActivity {
         return new ArrayList<>();
     }
 
-    public List<Drink> readDrinksFromStammtisch(int stammtischID) {
+    private List<Drink> readDrinksFromStammtisch(int stammtischID) {
         List<Drink> drinks = new ArrayList<>();
 
         StrichlistReadFromStammtischTask strichlistReadFromStammtischTask = new StrichlistReadFromStammtischTask();
@@ -477,8 +482,9 @@ public class Strichlist extends AppCompatActivity {
     private void updateSum()
     {
         Double sum = getSum();
-        //String formatDouble = new DecimalFormat("#.#0 €").format(sum);
-        drinksSum.setText(String.valueOf(sum) + " €");
+
+        NumberFormat formater = new DecimalFormat("#0.00");
+        drinksSum.setText(formater.format(sum) + " €");
     }
 
     private double getSum()
@@ -488,5 +494,11 @@ public class Strichlist extends AppCompatActivity {
                 .reduce(0, (b1, b2) -> b1+b2);
 
         return sum;
+    }
+
+    private void actionbarDesign(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String backgroundColour = prefs.getString("colour", "#6200EE");
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor(backgroundColour)));
     }
 }

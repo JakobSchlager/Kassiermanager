@@ -1,8 +1,12 @@
-package com.example.kassiermanager;
+package com.example.kassiermanager.Activitys;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -10,7 +14,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.HashMap;
+import com.example.kassiermanager.Entities.DummyDrink;
+import com.example.kassiermanager.R;
 
 public class insertDrinkandPrice extends AppCompatActivity {
 
@@ -31,10 +36,14 @@ public class insertDrinkandPrice extends AppCompatActivity {
     EditText txt_Name;
     TextView txt_Price;
 
+    DummyDrink oldDrink = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_insert_drinkand_price);
+
+        actionbarDesign();
 
         btn1 = findViewById(R.id.btn_1);
         btn2 = findViewById(R.id.btn_2);
@@ -53,6 +62,19 @@ public class insertDrinkandPrice extends AppCompatActivity {
         txt_Name = findViewById(R.id.txt_drink_name);
         txt_Price = findViewById(R.id.txt_drink_price);
 
+        Bundle bundle = getIntent().getExtras();
+        if(bundle != null)
+        {
+            oldDrink = (DummyDrink) bundle.getSerializable("Drink");
+
+
+            txt_Name.setText(oldDrink.getName());
+            txt_Price.setText(oldDrink.getPrice().toString().replace(".", ","));
+
+
+        }
+
+
         btn_check.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -66,6 +88,7 @@ public class insertDrinkandPrice extends AppCompatActivity {
 
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra("Drink", drink);
+                    resultIntent.putExtra("OldDrink", oldDrink);
                     setResult(RESULT_OK, resultIntent);
                     finish();
                 }
@@ -218,9 +241,14 @@ public class insertDrinkandPrice extends AppCompatActivity {
             public void onClick(View v) {
                 String temp = txt_Price.getText().toString();
 
-                String result = temp.substring(0, temp.length()-1);
+                if(temp.length() != 0)
+                {
+                    String result = temp.substring(0, temp.length()-1);
+                    txt_Price.setText(result);
+                }
 
-                txt_Price.setText(result);
+
+
 
             }
         });
@@ -247,5 +275,11 @@ public class insertDrinkandPrice extends AppCompatActivity {
         {
            return true;
         }
+    }
+
+    private void actionbarDesign(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String backgroundColour = prefs.getString("colour", "#6200EE");
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor(backgroundColour)));
     }
 }

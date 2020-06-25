@@ -1,4 +1,4 @@
-package com.example.kassiermanager;
+package com.example.kassiermanager.Adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,29 +7,32 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.example.kassiermanager.Entities.DummyDrink;
+import com.example.kassiermanager.R;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class PersonListAdapter extends BaseAdapter {
+public class DrinkPriceAdapter extends BaseAdapter {
 
     private LayoutInflater inflater;
     private int layoutID;
-    private List<Person> persons = new ArrayList<>();
+    private List<DummyDrink> drinks = new ArrayList<>();
 
-    public PersonListAdapter(Context ctx, int layoutID, List<Person> persons) {
+    public DrinkPriceAdapter(Context ctx, int layoutID, List<DummyDrink> drinks) {
         this.inflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        this.layoutID = layoutID;
-        this.persons = persons;
+        this. layoutID = layoutID;
+        this.drinks = drinks;
     }
 
     @Override
     public int getCount() {
-        return persons.size();
+        return drinks.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return persons.get(position);
+        return drinks.get(position);
     }
 
     @Override
@@ -39,9 +42,12 @@ public class PersonListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        Person person = persons.get(position);
+
+        DummyDrink drink = drinks.get(position);
+
         View listItem = (convertView == null) ? inflater.inflate(this.layoutID, null) : convertView;
-        ((TextView) listItem.findViewById(R.id.personsName)).setText(person.getName());
+        ((TextView) listItem.findViewById(R.id.txt_drinkName)).setText(drink.getName());
+        ((TextView) listItem.findViewById(R.id.txt_drinkPrice)).setText(String.valueOf(drink.getPrice()));
 
         return listItem;
     }

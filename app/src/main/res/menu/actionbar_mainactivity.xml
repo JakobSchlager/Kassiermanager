@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
-
     <item
         android:id="@+id/scanQR"
         android:icon="@drawable/ic_search"
@@ -11,5 +10,10 @@
         android:id="@+id/newTable"
         android:icon="@drawable/ic_create_new_folder"
         android:title="Create new List"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/preferences_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="settings"
         app:showAsAction="ifRoom" />
 </menu>
