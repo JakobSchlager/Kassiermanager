@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 
+import com.example.kassiermanager.PreferenceFragment;
+
 import java.util.prefs.PreferenceChangeListener;
 
 public class PreferenceActivity extends AppCompatActivity {
