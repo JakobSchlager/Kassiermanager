@@ -1,6 +1,7 @@
 package com.example.kassiermanager.Activitys;
 
 import android.app.AlertDialog;
+import android.app.Notification;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -96,6 +97,8 @@ public class Strichlist extends AppCompatActivity {
                                     drinksAndAmount.clear();
                                     updateSum();
                                     myAdapter.notifyDataSetChanged();
+
+
                                 }
                             })
                             .setNegativeButton("No", null)
