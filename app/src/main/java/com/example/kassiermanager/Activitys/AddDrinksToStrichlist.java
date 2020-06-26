@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -18,8 +19,14 @@ import com.example.kassiermanager.Entities.Drink;
 import com.example.kassiermanager.Entities.DrinkPlusAmount;
 import com.example.kassiermanager.R;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class AddDrinksToStrichlist extends AppCompatActivity {
@@ -111,5 +118,53 @@ public class AddDrinksToStrichlist extends AppCompatActivity {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String backgroundColour = prefs.getString("colour", "#6200EE");
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor(backgroundColour)));
+    }
+
+    private boolean deleteGetraenk(int id) {
+        GetraenkDeleteEndpunkt getraenkDeleteEndpunkt = new GetraenkDeleteEndpunkt();
+        try {
+            String result = getraenkDeleteEndpunkt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf(id)).get();
+            return !result.contains("failed");
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private class GetraenkDeleteEndpunkt extends AsyncTask<String, Integer, String> {
+
+        private String URL = "http://139.178.101.87/StammtischTest/api/functions/Getraenk/deleteGetraenk.php?<id>";
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            URL = URL.replace("<id>", strings[0]);
+            String sJson = "";
+            try {
+                HttpURLConnection connection = (HttpURLConnection) new URL(URL).openConnection();
+                connection.setRequestMethod("DELETE");
+                connection.setRequestProperty("Content-Type", "application/json");
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return sJson;
+        }
+
     }
 }
