@@ -35,6 +35,7 @@
             android:screenOrientation="fullSensor"
             android:stateNotNeeded="true"
             android:windowSoftInputMode="stateAlwaysVisible" />
+        <service android:name=".Services.NotificationService" />
     </application>
 
 </manifest>

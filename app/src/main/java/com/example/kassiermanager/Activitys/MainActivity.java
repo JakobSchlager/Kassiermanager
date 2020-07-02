@@ -31,10 +31,12 @@ import com.example.kassiermanager.Entities.Person;
 import com.example.kassiermanager.Entities.Stammtisch;
 import com.example.kassiermanager.PreferenceActivity;
 import com.example.kassiermanager.R;
+import com.example.kassiermanager.Services.NotificationService;
 import com.google.zxing.WriterException;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -89,9 +91,9 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(getApplicationContext(), PersonListActivity.class);
                 intent.putExtra("StammtischID", tables.get(position).getId());
-
                 startActivity(intent);
-                //PersonenID: 1, StammtischID: 5
+
+                startService(tables.get(position).getId());
             }
         });
 
@@ -99,6 +101,13 @@ public class MainActivity extends AppCompatActivity {
 
         stammtischIds.forEach(id -> tables.add(readOneStammtisch(id)));
         myAdapter.notifyDataSetChanged();
+    }
+
+    public void startService(int stammtischID) {
+        Intent intent = new Intent(this, NotificationService.class);
+        intent.putExtra("stammtischID", stammtischID);
+
+        startService(intent);
     }
 
     private void actionbarDesign(){
@@ -221,15 +230,22 @@ public class MainActivity extends AppCompatActivity {
                     break;
 
                 case INTENT_CODE_EDIT_DRINKS:
-                    drinks = new ArrayList<>();
-
                     stammtischID = ((Stammtisch)data.getSerializableExtra("Stammtisch")).getId();
+
+                    List<Drink> allDrinks = readDrinksFromStammtisch(stammtischID);
+
                     name = data.getStringExtra("Name");
                     drinks = (List<DummyDrink>) data.getSerializableExtra("DrinkList");
 
                     newStammtisch = updateStammtisch(stammtischID, name);
 
-                    drinks.forEach(drink -> createDrink(stammtischID, drink.getName(), drink.getPrice()));
+                    for (DummyDrink dummyDrink : drinks) {
+                        boolean isInCloud = false;
+                        for (Drink drinkTemp : allDrinks) {
+                            if(dummyDrink.getName().equals(drinkTemp.getName()) && drinkTemp.getPrice() == dummyDrink.getPrice()) isInCloud = true;
+                        }
+                        if(!isInCloud) createDrink(stammtischID, dummyDrink.getName(), dummyDrink.getPrice());
+                    }
 
                     int pos = 0;
                     for (int i = 0; i < tables.size(); i++) {
@@ -241,6 +257,87 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private List<Drink> readDrinksFromStammtisch(int stammtischID) {
+        List<Drink> drinks = new ArrayList<>();
+
+        StrichlistReadFromStammtischTask strichlistReadFromStammtischTask = new StrichlistReadFromStammtischTask();
+        try {
+            String jsonString = strichlistReadFromStammtischTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf(stammtischID)).get();
+            if(!jsonString.contains("No strichlistes found") && !jsonString.equals("")) {
+                JSONArray jsonArray = new JSONObject(jsonString).getJSONArray("getraenke");
+
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonObject = (JSONObject) jsonArray.get(i);
+
+                    int getrankeID = jsonObject.getInt("id");
+                    String getrankeNamen = jsonObject.getString("GetraenkeName");
+                    double price = jsonObject.getDouble("Preis");
+
+                    drinks.add(new Drink(getrankeID, getrankeNamen, stammtischID, price));
+                }
+            }
+            return drinks;
+        } catch (ExecutionException | InterruptedException | JSONException e){
+            e.printStackTrace();
+        }
+
+        return new ArrayList<>();
+    }
+
+    private class StrichlistReadFromStammtischTask extends AsyncTask<String, Integer, String> {
+
+        private String URL = "http://139.178.101.87/StammtischTest/api/functions/Getraenk/readGetraenkeFromStammtisch.php?id=<id>";
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String sJsonResponse = "";
+            URL = URL.replace("<id>", strings[0]);
+
+            try {
+                HttpURLConnection connection = (HttpURLConnection) new URL(URL).openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Content-Type", "application/json");
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    sJsonResponse = readResponseStream(reader);
+                } else {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                    sJsonResponse = readResponseStream(reader);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return sJsonResponse;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+        }
+
+        private String readResponseStream(BufferedReader reader) throws IOException {
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            return stringBuilder.toString();
+        }
+
     }
 
     private Stammtisch readOneStammtisch(int id) {

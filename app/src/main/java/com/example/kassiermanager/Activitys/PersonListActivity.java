@@ -178,6 +178,7 @@ public class PersonListActivity extends AppCompatActivity {
 
         Person newPerson = createPerson(name, stammtischId, false);
         saveStammtischIDsLocal(stammtischId, newPerson.getId());
+        myID = newPerson.getId();
         persons.add(newPerson);
         myAdapter.notifyDataSetChanged();
     }
