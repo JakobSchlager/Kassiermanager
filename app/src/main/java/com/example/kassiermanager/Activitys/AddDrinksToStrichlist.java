@@ -103,7 +103,7 @@ public class AddDrinksToStrichlist extends AppCompatActivity {
                     if(drink.getName() == choosenName) choosenDrink = drink;
                 }
 
-                DrinkPlusAmount drink = new DrinkPlusAmount(1, choosenDrink.getId(), personID, spinnerDrinks.getSelectedItem().toString(),  drinks.get(spinnerDrinks.getSelectedItemPosition()).getPrice(),Integer.parseInt(txt_Amount.getText().toString()));
+                DrinkPlusAmount drink = new DrinkPlusAmount(1, choosenDrink.getId(), personID, spinnerDrinks.getSelectedItem().toString(),  drinks.get(spinnerDrinks.getSelectedItemPosition()).getPrice(), Integer.parseInt(txt_Amount.getText().toString()));
 
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("myReturnDrink", drink);

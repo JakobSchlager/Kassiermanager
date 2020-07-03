@@ -43,6 +43,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class Strichlist extends AppCompatActivity {
 
@@ -67,7 +68,6 @@ public class Strichlist extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         person = (Person) bundle.getSerializable("Person");
 
-
         btn_Pay = findViewById(R.id.btn_pay);
         btn_AddDrink = findViewById(R.id.btn_add_drink);
         drinksSum = findViewById(R.id.txt_to_show_Sum);
@@ -78,7 +78,7 @@ public class Strichlist extends AppCompatActivity {
         registerForContextMenu(drinkListView);
 
         //strichlisten von der Person werden hinzugefügt
-        drinksAndAmount.addAll(readStrichlisteFromPerson(person.getId()));
+        drinksAndAmount.addAll(readStrichlisteFromPerson(person.getId()).stream().filter(strichlist -> strichlist.getAmount() != 0).collect(Collectors.toList()));
 
         updateSum();
 
@@ -94,11 +94,13 @@ public class Strichlist extends AppCompatActivity {
                             .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
+                                    drinksAndAmount.forEach(drinks -> {
+                                        updateStrichliste(drinks, 0);
+                                    });
+
                                     drinksAndAmount.clear();
                                     updateSum();
                                     myAdapter.notifyDataSetChanged();
-
-
                                 }
                             })
                             .setNegativeButton("No", null)
@@ -114,17 +116,7 @@ public class Strichlist extends AppCompatActivity {
         btn_AddDrink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 List<Drink> drinks = new ArrayList<>();
-
-
-                //test:
-                /*
-                drinks.add(new Drink(1, "Bier", 1, 3.5));
-                drinks.add(new Drink(2, "Wein", 1, 2.5));
-                drinks.add(new Drink(3, "Cola", 1, 3));
-                */
-
                 drinks.addAll(readDrinksFromStammtisch(person.getStammtsichID()));
 
                 Intent intent = new Intent(getApplicationContext(), AddDrinksToStrichlist.class);
@@ -160,16 +152,9 @@ public class Strichlist extends AppCompatActivity {
             {
                  pos = info.position;
 
-
-
-                 //hier sollte der Amount des Drinks um eins herabgesetzt werden.
             }
 
-
-
         }
-
-
         return super.onContextItemSelected(item);
     }
 
@@ -179,7 +164,7 @@ public class Strichlist extends AppCompatActivity {
             String jsonString = strichlistenEditEndpunkt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf(oldStrichliste.getId()), String.valueOf(oldStrichliste.getPersonID()), String.valueOf(oldStrichliste.getGetraenkeID()), String.valueOf(newAmount)).get();
 
             if (jsonString.contains("strichliste was updated.")) {
-                oldStrichliste.setAmount(oldStrichliste.getAmount() + newAmount);
+                oldStrichliste.setAmount(newAmount);
                 return oldStrichliste;
             }
         }
@@ -190,7 +175,6 @@ public class Strichlist extends AppCompatActivity {
     }
 
     public List<DrinkPlusAmount> readStrichlisteFromPerson(int personID) {
-        //alle personen von stammtisch "stammtischID" werden eingelesen
         List<DrinkPlusAmount> strichlists = new ArrayList<>();
 
         StrichlistReadFromPersonTask strichlistReadFromPersonTask = new StrichlistReadFromPersonTask();
@@ -208,11 +192,9 @@ public class Strichlist extends AppCompatActivity {
                     double price = jsonObject.getDouble("price");
                     int anzahl = jsonObject.getInt("anzahl");
 
-                    //remove comment below
                     strichlists.add(new DrinkPlusAmount(id, getraenkeID, personID, getrankeNamen, price, anzahl));
                 }
             }
-            //remove comment below
             return strichlists;
         } catch (ExecutionException | InterruptedException | JSONException e){
             e.printStackTrace();
@@ -363,7 +345,6 @@ public class Strichlist extends AppCompatActivity {
         {
             if (resultCode == RESULT_OK)
             {
-
                 boolean changed = false;
 
                 DrinkPlusAmount drink = (DrinkPlusAmount) data.getSerializableExtra("myReturnDrink");
@@ -375,7 +356,8 @@ public class Strichlist extends AppCompatActivity {
                         DrinkPlusAmount oldStrichliste = drinksAndAmount.get(i);
                         oldStrichliste.setId(strichlistenID);
 
-                        DrinkPlusAmount newStrichliste = updateStrichliste(oldStrichliste, drink.getAmount());
+
+                        DrinkPlusAmount newStrichliste = updateStrichliste(oldStrichliste, oldStrichliste.getAmount()+drink.getAmount());
                         drinksAndAmount.set(i, newStrichliste);
                         changed = true;
                     }
@@ -409,6 +391,8 @@ public class Strichlist extends AppCompatActivity {
             personID = jsonObject.getInt("personId");
             getraenkeID = jsonObject.getInt("drinkId");
             anzahl = jsonObject.getInt("count");
+
+            updateStrichliste(new DrinkPlusAmount(strichlistenID, getraenkeID, personID, drink.getName(), drink.getPrice(), anzahl), anzahl);
 
             return new DrinkPlusAmount(strichlistenID, getraenkeID, personID, drink.getName(), drink.getPrice(), anzahl);
         } catch (ExecutionException | InterruptedException | JSONException e) {

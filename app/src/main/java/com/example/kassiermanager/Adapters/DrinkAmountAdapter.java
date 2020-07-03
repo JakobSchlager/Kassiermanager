@@ -41,9 +41,15 @@ public class DrinkAmountAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-
         DrinkPlusAmount drinkPlusAmount= drinksAmount.get(position);
         View listItem = (convertView == null) ? inflater.inflate(this.layoutID, null) : convertView;
+        /*
+        if(drinkPlusAmount.getAmount() == 0) {
+          ((TextView) listItem.findViewById(R.id.txt_show_Drink_Amount)).setVisibility(View.INVISIBLE);
+        } else {
+            ((TextView) listItem.findViewById(R.id.txt_show_Drink_Amount)).setVisibility(View.VISIBLE);
+        }
+        */
         ((TextView) listItem.findViewById(R.id.txt_show_Drink_Name)).setText(drinkPlusAmount.getName());
         ((TextView) listItem.findViewById(R.id.txt_show_Drink_Price)).setText(String.valueOf(drinkPlusAmount.getPrice()));
         ((TextView) listItem.findViewById(R.id.txt_show_Drink_Amount)).setText(String.valueOf(drinkPlusAmount.getAmount()));
