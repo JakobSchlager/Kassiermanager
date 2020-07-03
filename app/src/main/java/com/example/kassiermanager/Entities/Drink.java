@@ -31,4 +31,8 @@ public class Drink implements Serializable {
     public double getPrice() {
         return price;
     }
+
+    public DummyDrink getDummyDrink() {
+        return new DummyDrink(name, price);
+    }
 }

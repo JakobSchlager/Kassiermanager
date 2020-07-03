@@ -1,10 +1,5 @@
 package com.example.kassiermanager.Activitys;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.preference.PreferenceManager;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -13,7 +8,6 @@ import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.Html;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Display;
@@ -23,19 +17,26 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
+
+import com.example.kassiermanager.Adapters.TableListAdapter;
 import com.example.kassiermanager.CaptureAct;
 import com.example.kassiermanager.Entities.Drink;
 import com.example.kassiermanager.Entities.DummyDrink;
+import com.example.kassiermanager.Entities.Person;
+import com.example.kassiermanager.Entities.Stammtisch;
 import com.example.kassiermanager.PreferenceActivity;
 import com.example.kassiermanager.R;
-import com.example.kassiermanager.Entities.Stammtisch;
-import com.example.kassiermanager.Adapters.TableListAdapter;
+import com.example.kassiermanager.Services.NotificationService;
 import com.google.zxing.WriterException;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -90,9 +91,9 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(getApplicationContext(), PersonListActivity.class);
                 intent.putExtra("StammtischID", tables.get(position).getId());
-
                 startActivity(intent);
-                //PersonenID: 1, StammtischID: 5
+
+                startService(tables.get(position).getId());
             }
         });
 
@@ -100,6 +101,13 @@ public class MainActivity extends AppCompatActivity {
 
         stammtischIds.forEach(id -> tables.add(readOneStammtisch(id)));
         myAdapter.notifyDataSetChanged();
+    }
+
+    public void startService(int stammtischID) {
+        Intent intent = new Intent(this, NotificationService.class);
+        intent.putExtra("stammtischID", stammtischID);
+
+        startService(intent);
     }
 
     private void actionbarDesign(){
@@ -130,38 +138,21 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
+        int pos = 0;
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        if(info != null) pos = info.position;
 
-        if(item.getItemId() == R.id.context_showQRCode)
-        {
+        switch (item.getItemId()) {
+            case R.id.context_showQRCode:
+                showQRCode(tables.get(pos));
+                return true;
+            case R.id.context_edit_main:
+                Stammtisch table = (Stammtisch) myListview.getAdapter().getItem(pos);
 
-            int pos = 0;
-
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-
-            if(info != null)
-            {
-               pos = info.position;
-            }
-
-            showQRCode(tables.get(pos));
-            return true;
-        }
-        if(item.getItemId() == R.id.context_edit_main)
-        {
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-
-            Stammtisch table = null;
-            if(info != null)
-            {
-                int pos = info.position;
-                table = (Stammtisch) myListview.getAdapter().getItem(pos);
-            }
-
-            Intent intent = new Intent(this, AddTableandDrinks.class);
-            intent.putExtra("Stammtisch", table);
-            startActivityForResult(intent, INTENT_CODE_EDIT_DRINKS);
-
-            return true;
+                Intent intent = new Intent(this, AddTableandDrinks.class);
+                intent.putExtra("Stammtisch", table);
+                startActivityForResult(intent, INTENT_CODE_EDIT_DRINKS);
+                return true;
         }
         return super.onContextItemSelected(item);
     }
@@ -207,47 +198,146 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if(resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case INTENT_REQUEST_CODE_DRINKS:
+                        List<DummyDrink> drinks = new ArrayList<>();
 
-        if(requestCode == INTENT_REQUEST_CODE_DRINKS)
-        {
-            if(resultCode == RESULT_OK)
-            {
-                List<DummyDrink> drinks = new ArrayList<>();
+                        assert data != null;
+                        String name = data.getStringExtra("Name");
+                        drinks = (List<DummyDrink>) data.getSerializableExtra("DrinkList");
 
-                assert data != null;
-                String name = data.getStringExtra("Name");
-                drinks = (List<DummyDrink>) data.getSerializableExtra("DrinkList");
+                        Stammtisch newStammtisch = createStammtisch(name);
+                        int stammtischID = newStammtisch.getId();
 
-                Stammtisch newStammtisch = createStammtisch(name);
-                int stammtischID = newStammtisch.getId();
+                        drinks.forEach(drink -> createDrink(stammtischID, drink.getName(), drink.getPrice()));
 
-                drinks.forEach(drink -> createDrink(stammtischID, drink.getName(), drink.getPrice()));
+                        tables.add(newStammtisch);
+                        myAdapter.notifyDataSetChanged();
+                        break;
 
-                tables.add(newStammtisch);
-                myAdapter.notifyDataSetChanged();
+                    case IntentIntegrator.REQUEST_CODE:
+                    IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+
+                    int id = Integer.valueOf(result.getContents());
+
+                    tables.add(readOneStammtisch(id));
+                    myAdapter.notifyDataSetChanged();
+                    break;
+
+                    case RQ_PREFERENCES:
+                    System.out.println();
+                    break;
+
+                case INTENT_CODE_EDIT_DRINKS:
+                    stammtischID = ((Stammtisch)data.getSerializableExtra("Stammtisch")).getId();
+
+                    List<Drink> allDrinks = readDrinksFromStammtisch(stammtischID);
+
+                    name = data.getStringExtra("Name");
+                    drinks = (List<DummyDrink>) data.getSerializableExtra("DrinkList");
+
+                    newStammtisch = updateStammtisch(stammtischID, name);
+
+                    for (DummyDrink dummyDrink : drinks) {
+                        boolean isInCloud = false;
+                        for (Drink drinkTemp : allDrinks) {
+                            if(dummyDrink.getName().equals(drinkTemp.getName()) && drinkTemp.getPrice() == dummyDrink.getPrice()) isInCloud = true;
+                        }
+                        if(!isInCloud) createDrink(stammtischID, dummyDrink.getName(), dummyDrink.getPrice());
+                    }
+
+                    int pos = 0;
+                    for (int i = 0; i < tables.size(); i++) {
+                        if(tables.get(i).getId() == newStammtisch.getId()) pos = i;
+                    }
+                    tables.set(pos, newStammtisch);
+                    myAdapter.notifyDataSetChanged();
+                    break;
             }
         }
-
-        if(requestCode == IntentIntegrator.REQUEST_CODE)
-        {
-            if(resultCode == RESULT_OK)
-            {
-                IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-
-                int id = Integer.valueOf(result.getContents());
-
-                tables.add(readOneStammtisch(id));
-                myAdapter.notifyDataSetChanged();
-            }
-        }
-
-        if(requestCode == RQ_PREFERENCES) {
-            if(resultCode == RESULT_OK) {
-                System.out.println();
-            }
-        }
-
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private List<Drink> readDrinksFromStammtisch(int stammtischID) {
+        List<Drink> drinks = new ArrayList<>();
+
+        StrichlistReadFromStammtischTask strichlistReadFromStammtischTask = new StrichlistReadFromStammtischTask();
+        try {
+            String jsonString = strichlistReadFromStammtischTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf(stammtischID)).get();
+            if(!jsonString.contains("No strichlistes found") && !jsonString.equals("")) {
+                JSONArray jsonArray = new JSONObject(jsonString).getJSONArray("getraenke");
+
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonObject = (JSONObject) jsonArray.get(i);
+
+                    int getrankeID = jsonObject.getInt("id");
+                    String getrankeNamen = jsonObject.getString("GetraenkeName");
+                    double price = jsonObject.getDouble("Preis");
+
+                    drinks.add(new Drink(getrankeID, getrankeNamen, stammtischID, price));
+                }
+            }
+            return drinks;
+        } catch (ExecutionException | InterruptedException | JSONException e){
+            e.printStackTrace();
+        }
+
+        return new ArrayList<>();
+    }
+
+    private class StrichlistReadFromStammtischTask extends AsyncTask<String, Integer, String> {
+
+        private String URL = "http://139.178.101.87/StammtischTest/api/functions/Getraenk/readGetraenkeFromStammtisch.php?id=<id>";
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String sJsonResponse = "";
+            URL = URL.replace("<id>", strings[0]);
+
+            try {
+                HttpURLConnection connection = (HttpURLConnection) new URL(URL).openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Content-Type", "application/json");
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    sJsonResponse = readResponseStream(reader);
+                } else {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                    sJsonResponse = readResponseStream(reader);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return sJsonResponse;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+        }
+
+        private String readResponseStream(BufferedReader reader) throws IOException {
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            return stringBuilder.toString();
+        }
+
     }
 
     private Stammtisch readOneStammtisch(int id) {
@@ -597,5 +687,72 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         return new ArrayList<>();
+    }
+
+    private Stammtisch updateStammtisch(int newID, String newName) {
+        try {
+            StammtischEditEndpunkt stammtischEditEndpunkt = new StammtischEditEndpunkt();
+            String jsonString = stammtischEditEndpunkt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, String.valueOf(newID), newName).get();
+
+            if (jsonString.contains("Stammtisch was updated.")) {
+                return new Stammtisch(newName, newID);
+            }
+        }
+        catch (ExecutionException | InterruptedException  e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private class StammtischEditEndpunkt extends AsyncTask<String, Integer, String> {
+
+        private String URL = "http://139.178.101.87/StammtischTest/api/functions/Stammtisch/updateStammtisch.php";
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String jsonString = "{ \"StammtischID\" : \"" + strings[0] + "\" , \"Name\" : \"" + strings[1] + "\" }";
+            String sJson = "";
+
+            try {
+                HttpURLConnection connection = (HttpURLConnection) new URL(URL).openConnection();
+                connection.setRequestMethod("PUT");
+                connection.setDoOutput(true);
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setFixedLengthStreamingMode(jsonString.getBytes().length);
+                connection.getOutputStream().write(jsonString.getBytes());
+                connection.getOutputStream().flush();
+                int responseCode = connection.getResponseCode();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                sJson = readResponseStream(reader);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return sJson;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+        }
+
+        private String readResponseStream(BufferedReader reader) throws IOException {
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            return stringBuilder.toString();
+        }
+
     }
 }

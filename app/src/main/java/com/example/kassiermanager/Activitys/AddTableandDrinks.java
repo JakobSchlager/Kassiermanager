@@ -39,6 +39,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class AddTableandDrinks extends AppCompatActivity {
 
@@ -52,6 +53,8 @@ public class AddTableandDrinks extends AppCompatActivity {
 
     private List<DummyDrink> drinkList = new ArrayList<>();
     private DrinkPriceAdapter myAdapter;
+
+    Stammtisch stammtisch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,8 +79,11 @@ public class AddTableandDrinks extends AppCompatActivity {
             Stammtisch table = (Stammtisch) bundle.getSerializable("Stammtisch");
 
             // tabeles von DB und in Views einfügen.
-            Stammtisch stammtisch = readOneStammtisch(table.getId());
+            stammtisch = readOneStammtisch(table.getId());
             List<Drink> drinks = readDrinksFromStammtisch(table.getId());
+            txt_Name.setText(stammtisch.getName());
+            drinkList.addAll(drinks.stream().map(drink -> drink.getDummyDrink()).collect(Collectors.toList()));
+            myAdapter.notifyDataSetChanged();
         }
 
 
@@ -96,6 +102,7 @@ public class AddTableandDrinks extends AppCompatActivity {
                 else
                 {
                     Intent resultIntent = new Intent();
+                    if(stammtisch != null) resultIntent.putExtra("Stammtisch", stammtisch);
                     resultIntent.putExtra("Name", name);
                     resultIntent.putExtra("DrinkList", (Serializable) drinkList);
                     setResult(RESULT_OK, resultIntent);
